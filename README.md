@@ -28,7 +28,7 @@
 
 ## 📸 Screenshots
 
-> 📷 Screenshots coming soon! Run the extension to see it in action.
+![AI Cache Cleaner Dashboard](images/screenshot-dashboard.png)
 
 ## 🚀 Installation
 
