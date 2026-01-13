@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+.shared
+.agent
+.vscode
+
+# Build output
+out/
+dist/
+*.vsix
+
+# IDE
+.vscode/*
+!.vscode/launch.json
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test coverage
+coverage/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Environment
+.env
+.env.local
+
+# Temporary files
+*.tmp
+*.temp
