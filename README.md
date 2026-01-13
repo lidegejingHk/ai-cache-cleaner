@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/linjingheng/ai-cache-cleaner/blob/main/LICENSE">
+  <a href="https://github.com/lidegejingHk/ai-cache-cleaner/blob/main/LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License">
   </a>
   <img src="https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey.svg" alt="Platform">
@@ -28,10 +28,7 @@
 
 ## 📸 Screenshots
 
-<!-- Add screenshots here -->
-| Dashboard | Safety Modal | Search |
-|-----------|--------------|--------|
-| ![Dashboard](images/screenshot-dashboard.png) | ![Safety](images/screenshot-safety.png) | ![Search](images/screenshot-search.png) |
+> 📷 Screenshots coming soon! Run the extension to see it in action.
 
 ## 🚀 Installation
 
@@ -39,7 +36,7 @@
 
 ```bash
 # Clone the repository
-git clone https://github.com/linjingheng/ai-cache-cleaner.git
+git clone https://github.com/lidegejingHk/ai-cache-cleaner.git
 cd ai-cache-cleaner
 
 # Install dependencies
@@ -143,5 +140,5 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) for deta
 ---
 
 <p align="center">
-  Made with ❤️ by <a href="https://github.com/linjingheng">linjingheng</a>
+  Made with ❤️ by <a href="https://github.com/lidegejingHk">lidegejingHk</a>
 </p>

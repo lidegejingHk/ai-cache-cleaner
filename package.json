@@ -3,19 +3,19 @@
   "displayName": "AI Cache Cleaner",
   "description": "Visualize and clean cache from AI coding tools (Claude, Gemini, Cursor, Copilot, and more)",
   "version": "0.1.0",
-  "publisher": "linjingheng",
+  "publisher": "lidegejingHk",
   "author": {
-    "name": "linjingheng"
+    "name": "lidegejingHk"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/linjingheng/ai-cache-cleaner.git"
+    "url": "https://github.com/lidegejingHk/ai-cache-cleaner.git"
   },
   "bugs": {
-    "url": "https://github.com/linjingheng/ai-cache-cleaner/issues"
+    "url": "https://github.com/lidegejingHk/ai-cache-cleaner/issues"
   },
-  "homepage": "https://github.com/linjingheng/ai-cache-cleaner#readme",
+  "homepage": "https://github.com/lidegejingHk/ai-cache-cleaner#readme",
   "icon": "images/icon.png",
   "galleryBanner": {
     "color": "#0F172A",
