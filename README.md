@@ -12,7 +12,19 @@
   <a href="https://github.com/lidegejingHk/ai-cache-cleaner/blob/main/LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License">
   </a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=lidegejingHk.ai-cache-cleaner">
+    <img src="https://img.shields.io/visual-studio-marketplace/v/lidegejingHk.ai-cache-cleaner?label=VS%20Code%20Marketplace&logo=visual-studio-code" alt="VS Code Marketplace">
+  </a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=lidegejingHk.ai-cache-cleaner">
+    <img src="https://img.shields.io/visual-studio-marketplace/i/lidegejingHk.ai-cache-cleaner?label=Installs&logo=visual-studio-code" alt="Installs">
+  </a>
   <img src="https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey.svg" alt="Platform">
+</p>
+
+<p align="center">
+  <a href="https://marketplace.visualstudio.com/items?itemName=lidegejingHk.ai-cache-cleaner">
+    <img src="https://img.shields.io/badge/Install%20from-VS%20Code%20Marketplace-007ACC?style=for-the-badge&logo=visual-studio-code" alt="Install from VS Code Marketplace">
+  </a>
 </p>
 
 ---
@@ -31,6 +43,15 @@
 ![AI Cache Cleaner Dashboard](images/screenshot-dashboard.png)
 
 ## 🚀 Installation
+
+### From VS Code Marketplace (Recommended)
+
+1. Open VSCode
+2. Go to Extensions (`Cmd+Shift+X` or `Ctrl+Shift+X`)
+3. Search for **"AI Cache Cleaner"**
+4. Click **Install**
+
+Or click: [**Install from Marketplace**](https://marketplace.visualstudio.com/items?itemName=lidegejingHk.ai-cache-cleaner)
 
 ### From Source
 
