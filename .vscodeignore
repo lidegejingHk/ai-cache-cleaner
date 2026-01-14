@@ -10,3 +10,4 @@ node_modules/**
 .agent/**
 .shared/**
 CONTRIBUTING.md
+README.md

@@ -67,6 +67,16 @@ This project is licensed under the MIT License.
 
 ---
 
+## ⭐ Enjoying AI Cache Cleaner?
+
+If this extension helps you manage your AI tool caches, please consider:
+
+- ⭐ **[Rate us on the Marketplace](https://marketplace.visualstudio.com/items?itemName=lidegejingHk.ai-cache-cleaner&ssr=false#review-details)** - Your rating helps others discover this extension!
+- 🐛 **[Report issues or request features](https://github.com/lidegejingHk/ai-cache-cleaner/issues)** - We'd love your feedback!
+- 🌟 **[Star us on GitHub](https://github.com/lidegejingHk/ai-cache-cleaner)** - Show your support!
+
+---
+
 <p align="center">
   Made with ❤️ by <a href="https://github.com/lidegejingHk">lidegejingHk</a>
 </p>
