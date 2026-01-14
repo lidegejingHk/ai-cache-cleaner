@@ -42,12 +42,40 @@
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "ai-cache-cleaner",
+          "title": "AI Cache Cleaner",
+          "icon": "images/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "ai-cache-cleaner": [
+        {
+          "id": "aiCacheCleanerView",
+          "name": "Dashboard",
+          "type": "webview"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "claude-cache-cleaner.open",
-        "title": "AI Cache Cleaner: Open Dashboard"
+        "title": "AI Cache Cleaner: Open Dashboard",
+        "icon": "$(trash)"
       }
-    ]
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "claude-cache-cleaner.open",
+          "when": "view == aiCacheCleanerView",
+          "group": "navigation"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

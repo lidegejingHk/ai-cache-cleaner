@@ -92,6 +92,107 @@ export function activate(context: vscode.ExtensionContext) {
     });
 
     context.subscriptions.push(command);
+
+    // Register the sidebar webview provider
+    const sidebarProvider = new AICacheCleanerViewProvider(context);
+    context.subscriptions.push(
+        vscode.window.registerWebviewViewProvider('aiCacheCleanerView', sidebarProvider)
+    );
+}
+
+// Sidebar WebviewViewProvider
+class AICacheCleanerViewProvider implements vscode.WebviewViewProvider {
+    private _view?: vscode.WebviewView;
+    private _context: vscode.ExtensionContext;
+
+    constructor(context: vscode.ExtensionContext) {
+        this._context = context;
+    }
+
+    public resolveWebviewView(
+        webviewView: vscode.WebviewView,
+        _context: vscode.WebviewViewResolveContext,
+        _token: vscode.CancellationToken
+    ) {
+        this._view = webviewView;
+
+        webviewView.webview.options = {
+            enableScripts: true,
+            localResourceRoots: [this._context.extensionUri]
+        };
+
+        webviewView.webview.html = this._getWelcomeHtml();
+
+        webviewView.webview.onDidReceiveMessage(message => {
+            if (message.command === 'openDashboard') {
+                vscode.commands.executeCommand('claude-cache-cleaner.open');
+            }
+        });
+    }
+
+    private _getWelcomeHtml(): string {
+        return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: var(--vscode-font-family);
+            padding: 16px;
+            background: transparent;
+            color: var(--vscode-foreground);
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        h3 {
+            margin: 0 0 8px 0;
+            font-size: 14px;
+        }
+        p {
+            margin: 0 0 16px 0;
+            font-size: 12px;
+            color: var(--vscode-descriptionForeground);
+        }
+        button {
+            background: var(--vscode-button-background);
+            color: var(--vscode-button-foreground);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            width: 100%;
+        }
+        button:hover {
+            background: var(--vscode-button-hoverBackground);
+        }
+        .icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">🧹</div>
+        <h3>AI Cache Cleaner</h3>
+        <p>Visualize and clean cache from AI coding tools</p>
+        <button onclick="openDashboard()">Open Dashboard</button>
+    </div>
+    <script>
+        const vscode = acquireVsCodeApi();
+        function openDashboard() {
+            vscode.postMessage({ command: 'openDashboard' });
+        }
+    </script>
+</body>
+</html>`;
+    }
 }
 
 function getSafetyOverrides(): Record<string, SafetyLevel> {
