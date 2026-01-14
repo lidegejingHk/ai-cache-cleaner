@@ -51,7 +51,7 @@ export function activate(context: vscode.ExtensionContext) {
                             sendSafetyOverrides(panel!.webview);
                             return;
                         case 'delete':
-                            await handleDelete(message.paths, panel!.webview);
+                            await handleDelete(message.paths, message.safetyLevels || {}, panel!.webview);
                             return;
                         case 'search':
                             await handleSearch(message.query, panel!.webview);
@@ -385,15 +385,47 @@ async function handleSearch(query: string, webview: vscode.Webview) {
     }
 }
 
-async function handleDelete(paths: string[], webview: vscode.Webview) {
+async function handleDelete(paths: string[], safetyLevels: Record<string, SafetyLevel>, webview: vscode.Webview) {
     const totalPaths = paths.length;
+
+    // Count items by safety level
+    const overrides = getSafetyOverrides();
+    let safeCount = 0;
+    let cautionCount = 0;
+    let dangerCount = 0;
+
+    for (const path of paths) {
+        const level = overrides[path] || safetyLevels[path] || 'safe';
+        if (level === 'safe') safeCount++;
+        else if (level === 'caution') cautionCount++;
+        else if (level === 'danger') dangerCount++;
+    }
+
+    // Build confirmation message based on safety levels
+    let confirmMessage = `Are you sure you want to delete ${totalPaths} item(s)?`;
+    let warningDetails = '';
+
+    if (dangerCount > 0) {
+        warningDetails = `⚠️ WARNING: You selected ${dangerCount} DANGER-level item(s)!\n\nThese items are critical for AI tool functionality and may cause issues if deleted.\n\n`;
+    } else if (cautionCount > 0) {
+        warningDetails = `⚠️ CAUTION: You selected ${cautionCount} CAUTION-level item(s).\n\nThese items may contain user preferences or history that cannot be easily recovered.\n\n`;
+    }
+
+    if (warningDetails) {
+        confirmMessage = warningDetails + `Summary:\n🟢 Safe: ${safeCount}\n🟡 Caution: ${cautionCount}\n🔴 Danger: ${dangerCount}\n\nContinue with deletion?`;
+    }
+
+    const buttons = dangerCount > 0
+        ? ['Delete Anyway', 'Cancel']
+        : (cautionCount > 0 ? ['Delete', 'Cancel'] : ['Delete']);
+
     const confirm = await vscode.window.showWarningMessage(
-        `Are you sure you want to delete ${totalPaths} item(s)?`,
+        confirmMessage,
         { modal: true },
-        'Delete'
+        ...buttons
     );
 
-    if (confirm !== 'Delete') {
+    if (confirm !== 'Delete' && confirm !== 'Delete Anyway') {
         webview.postMessage({ command: 'deleteCancelled' });
         return;
     }
@@ -417,6 +449,7 @@ async function handleDelete(paths: string[], webview: vscode.Webview) {
             `Deleted ${result.successCount} item(s), ${result.failCount} failed`
         );
     }
+
 
     sendScanData(webview);
 }
@@ -678,9 +711,32 @@ function getWebviewContent(context: vscode.ExtensionContext, webview: vscode.Web
 
         deleteBtnEl.addEventListener('click', () => {
             if (selectedPaths.size > 0) {
+                // Collect safety levels for selected paths
+                const safetyLevels = {};
+                const collectLevels = (dirs) => {
+                    if (!dirs) return;
+                    for (const dir of dirs) {
+                        if (selectedPaths.has(dir.path)) {
+                            // Check if there's a user override first
+                            safetyLevels[dir.path] = userSafetyOverrides[dir.path] || dir.safetyLevel || 'safe';
+                        }
+                        if (dir.children) collectLevels(dir.children);
+                    }
+                };
+                if (scanData && scanData.directories) {
+                    collectLevels(scanData.directories);
+                }
+                // Also check custom directories
+                for (const path of selectedPaths) {
+                    if (!safetyLevels[path]) {
+                        safetyLevels[path] = userSafetyOverrides[path] || 'safe';
+                    }
+                }
+                
                 vscode.postMessage({ 
                     command: 'delete', 
-                    paths: Array.from(selectedPaths) 
+                    paths: Array.from(selectedPaths),
+                    safetyLevels: safetyLevels
                 });
             }
         });
