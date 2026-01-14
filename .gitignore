@@ -5,6 +5,9 @@ node_modules/
 .agent
 .vscode
 
+# Local scripts (not committed)
+scripts/
+
 # Build output
 out/
 dist/
