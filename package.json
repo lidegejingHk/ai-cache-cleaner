@@ -63,7 +63,7 @@
     },
     "commands": [
       {
-        "command": "claude-cache-cleaner.open",
+        "command": "ai-cache-cleaner.open",
         "title": "AI Cache Cleaner: Open Dashboard",
         "icon": "$(trash)"
       }
@@ -71,11 +71,44 @@
     "menus": {
       "view/title": [
         {
-          "command": "claude-cache-cleaner.open",
+          "command": "ai-cache-cleaner.open",
           "when": "view == aiCacheCleanerView",
           "group": "navigation"
         }
       ]
+    },
+    "configuration": {
+      "title": "AI Cache Cleaner",
+      "properties": {
+        "aiCacheCleaner.defaultSafetyLevel": {
+          "type": "string",
+          "default": "caution",
+          "enum": [
+            "safe",
+            "caution",
+            "danger"
+          ],
+          "enumDescriptions": [
+            "Safe - Allow easy deletion",
+            "Caution - Show warning before deletion",
+            "Danger - Prevent accidental deletion"
+          ],
+          "description": "Default safety level for unknown directories"
+        },
+        "aiCacheCleaner.excludePatterns": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "description": "Directory patterns to exclude from scanning (glob format)"
+        },
+        "aiCacheCleaner.showNotifications": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show notifications after delete operations"
+        }
+      }
     }
   },
   "scripts": {
@@ -84,7 +117,7 @@
     "watch": "tsc -watch -p ./",
     "pretest": "npm run compile",
     "test": "node ./out/test/runTest.js",
-    "test:unit": "mocha ./out/test/suite/*.test.js",
+    "test:unit": "mocha ./out/test/suite/*.test.js --ui tdd",
     "lint": "eslint src --ext ts",
     "package": "vsce package"
   },

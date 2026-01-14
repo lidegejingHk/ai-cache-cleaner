@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { scanAllCaches, ScanResult } from './cacheScanner';
+import { scanAllCaches, ScanResult, updateScanOptions } from './cacheScanner';
 import { deleteMultiple, formatSize } from './cacheDeleter';
 import { detectKnownAITools, searchDirectoriesSync, SearchResult } from './aiToolSignatures';
 import { SAFETY_DEFINITIONS, SafetyLevel, getSafetyTooltip, getLevelChangeWarning } from './safetyLevels';
@@ -11,17 +11,44 @@ let extensionContext: vscode.ExtensionContext;
 // Storage key for user safety level overrides
 const SAFETY_OVERRIDES_KEY = 'safetyLevelOverrides';
 
+// Get configuration and update scanner options
+function syncConfigToScanner() {
+    const config = vscode.workspace.getConfiguration('aiCacheCleaner');
+    updateScanOptions({
+        defaultSafetyLevel: config.get<'safe' | 'caution' | 'danger'>('defaultSafetyLevel', 'caution'),
+        excludePatterns: config.get<string[]>('excludePatterns', [])
+    });
+}
+
+// Check if notifications are enabled
+function shouldShowNotifications(): boolean {
+    const config = vscode.workspace.getConfiguration('aiCacheCleaner');
+    return config.get<boolean>('showNotifications', true);
+}
+
 export function activate(context: vscode.ExtensionContext) {
-    console.log('Claude Cache Cleaner is now active!');
+    console.log('AI Cache Cleaner is now active!');
     extensionContext = context;
 
-    const command = vscode.commands.registerCommand('claude-cache-cleaner.open', () => {
+    // Initialize scanner with user config
+    syncConfigToScanner();
+
+    // Listen for config changes
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeConfiguration(e => {
+            if (e.affectsConfiguration('aiCacheCleaner')) {
+                syncConfigToScanner();
+            }
+        })
+    );
+
+    const command = vscode.commands.registerCommand('ai-cache-cleaner.open', () => {
         if (panel) {
             panel.reveal(vscode.ViewColumn.One);
         } else {
             panel = vscode.window.createWebviewPanel(
-                'claudeCacheCleaner',
-                'Claude Cache Cleaner',
+                'aiCacheCleaner',
+                'AI Cache Cleaner',
                 vscode.ViewColumn.One,
                 {
                     enableScripts: true,
@@ -125,7 +152,7 @@ class AICacheCleanerViewProvider implements vscode.WebviewViewProvider {
 
         webviewView.webview.onDidReceiveMessage(message => {
             if (message.command === 'openDashboard') {
-                vscode.commands.executeCommand('claude-cache-cleaner.open');
+                vscode.commands.executeCommand('ai-cache-cleaner.open');
             }
         });
     }

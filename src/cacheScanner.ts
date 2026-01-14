@@ -20,6 +20,30 @@ export interface ScanResult {
   directories: CacheDirectory[];
 }
 
+export interface ScanOptions {
+  defaultSafetyLevel?: 'safe' | 'caution' | 'danger';
+  excludePatterns?: string[];
+}
+
+// Default scan options
+const DEFAULT_SCAN_OPTIONS: ScanOptions = {
+  defaultSafetyLevel: 'caution',
+  excludePatterns: []
+};
+
+// Current options (can be updated by extension)
+let currentOptions: ScanOptions = { ...DEFAULT_SCAN_OPTIONS };
+
+// Update options from extension
+export function updateScanOptions(options: Partial<ScanOptions>): void {
+  currentOptions = { ...DEFAULT_SCAN_OPTIONS, ...options };
+}
+
+// Get current default safety level
+function getDefaultSafetyLevel(): 'safe' | 'caution' | 'danger' {
+  return currentOptions.defaultSafetyLevel || 'caution';
+}
+
 // Directory safety classifications
 const SAFETY_MAP: Record<string, { level: 'safe' | 'caution' | 'danger'; description: string }> = {
   // ~/.claude/
@@ -82,7 +106,8 @@ function getDirectorySize(dirPath: string): number {
 }
 
 function getSafetyInfo(name: string): { level: 'safe' | 'caution' | 'danger'; description: string } {
-  return SAFETY_MAP[name] || { level: 'caution', description: 'Unknown directory' };
+  const defaultLevel = getDefaultSafetyLevel();
+  return SAFETY_MAP[name] || { level: defaultLevel, description: 'Unknown directory' };
 }
 
 function scanDirectory(dirPath: string, depth: number = 1): CacheDirectory[] {
