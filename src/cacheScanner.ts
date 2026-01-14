@@ -75,7 +75,7 @@ const SAFETY_MAP: Record<string, { level: 'safe' | 'caution' | 'danger'; descrip
 };
 
 function formatSize(bytes: number): string {
-  if (bytes === 0) {return '0 B';}
+  if (bytes === 0) { return '0 B'; }
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -148,6 +148,12 @@ function scanDirectory(dirPath: string, depth: number = 1): CacheDirectory[] {
           // Scan children for first level
           if (depth > 0) {
             dir.children = scanDirectory(itemPath, depth - 1);
+
+            // Inherit safety level from children (use the highest risk level)
+            if (dir.children && dir.children.length > 0) {
+              const childMaxLevel = getMaxSafetyLevel(dir.children);
+              dir.safetyLevel = getHigherRiskLevel(dir.safetyLevel, childMaxLevel);
+            }
           }
 
           result.push(dir);
@@ -166,6 +172,28 @@ function scanDirectory(dirPath: string, depth: number = 1): CacheDirectory[] {
   return result;
 }
 
+// Get the maximum (most dangerous) safety level from a list of directories
+function getMaxSafetyLevel(dirs: CacheDirectory[]): 'safe' | 'caution' | 'danger' {
+  let maxLevel: 'safe' | 'caution' | 'danger' = 'safe';
+  for (const dir of dirs) {
+    maxLevel = getHigherRiskLevel(maxLevel, dir.safetyLevel);
+    // Early exit if already at highest level
+    if (maxLevel === 'danger') {
+      break;
+    }
+  }
+  return maxLevel;
+}
+
+// Compare two safety levels and return the higher risk one
+function getHigherRiskLevel(
+  a: 'safe' | 'caution' | 'danger',
+  b: 'safe' | 'caution' | 'danger'
+): 'safe' | 'caution' | 'danger' {
+  const riskOrder = { safe: 0, caution: 1, danger: 2 };
+  return riskOrder[a] >= riskOrder[b] ? a : b;
+}
+
 export function scanAllCaches(): ScanResult {
   const homeDir = os.homedir();
   const directories: CacheDirectory[] = [];
@@ -175,16 +203,18 @@ export function scanAllCaches(): ScanResult {
   const claudeDir = path.join(homeDir, '.claude');
   if (fs.existsSync(claudeDir)) {
     const claudeSize = getDirectorySize(claudeDir);
-    const safetyInfo = { level: 'caution' as const, description: 'Claude Code CLI data' };
+    const children = scanDirectory(claudeDir, 1);
+    // Inherit safety level from children
+    const inheritedLevel = children.length > 0 ? getMaxSafetyLevel(children) : 'caution';
 
     directories.push({
       path: claudeDir,
       name: '.claude',
       size: claudeSize,
       sizeFormatted: formatSize(claudeSize),
-      safetyLevel: safetyInfo.level,
-      description: safetyInfo.description,
-      children: scanDirectory(claudeDir, 1),
+      safetyLevel: inheritedLevel,
+      description: 'Claude Code CLI data',
+      children,
       isExpanded: true,
       isSelected: false,
     });
@@ -195,7 +225,6 @@ export function scanAllCaches(): ScanResult {
   const geminiDir = path.join(homeDir, '.gemini');
   if (fs.existsSync(geminiDir)) {
     const geminiSize = getDirectorySize(geminiDir);
-    const safetyInfo = { level: 'caution' as const, description: 'Gemini/Antigravity data' };
 
     // Scan antigravity subdirectory specifically
     const antigravityDir = path.join(geminiDir, 'antigravity');
@@ -225,13 +254,16 @@ export function scanAllCaches(): ScanResult {
     // Sort children by size
     children.sort((a, b) => b.size - a.size);
 
+    // Inherit safety level from children
+    const inheritedLevel = children.length > 0 ? getMaxSafetyLevel(children) : 'caution';
+
     directories.push({
       path: geminiDir,
       name: '.gemini',
       size: geminiSize,
       sizeFormatted: formatSize(geminiSize),
-      safetyLevel: safetyInfo.level,
-      description: safetyInfo.description,
+      safetyLevel: inheritedLevel,
+      description: 'Gemini/Antigravity data',
       children,
       isExpanded: true,
       isSelected: false,

@@ -409,15 +409,27 @@ async function handleSearch(query: string, webview: vscode.Webview) {
 }
 
 async function handleDelete(paths: string[], safetyLevels: Record<string, SafetyLevel>, webview: vscode.Webview) {
-    const totalPaths = paths.length;
+    // Helper to check if a path has any children in the selection
+    const hasSelectedChild = (path: string): boolean => {
+        for (const p of paths) {
+            if (p !== path && p.startsWith(path + '/')) {
+                return true;
+            }
+        }
+        return false;
+    };
 
-    // Count items by safety level
+    // Only count leaf nodes (paths without selected children)
+    const leafPaths = paths.filter(p => !hasSelectedChild(p));
+    const totalPaths = leafPaths.length;
+
+    // Count items by safety level (only leaf nodes)
     const overrides = getSafetyOverrides();
     let safeCount = 0;
     let cautionCount = 0;
     let dangerCount = 0;
 
-    for (const path of paths) {
+    for (const path of leafPaths) {
         const level = overrides[path] || safetyLevels[path] || 'safe';
         if (level === 'safe') { safeCount++; }
         else if (level === 'caution') { cautionCount++; }
@@ -1134,7 +1146,7 @@ function getWebviewContent(context: vscode.ExtensionContext, webview: vscode.Web
                 });
             }
 
-            // Checkbox handler - with parent-child cascade
+            // Checkbox handler - with bidirectional cascade
             checkbox.addEventListener('change', (e) => {
                 const path = e.target.dataset.path;
                 const isChecked = e.target.checked;
@@ -1145,7 +1157,7 @@ function getWebviewContent(context: vscode.ExtensionContext, webview: vscode.Web
                     selectedPaths.delete(path);
                 }
                 
-                // Cascade to children
+                // Cascade DOWN to children
                 if (hasChildren) {
                     const childCheckboxes = node.querySelectorAll('.tree-children .tree-checkbox');
                     childCheckboxes.forEach(childCb => {
@@ -1160,6 +1172,9 @@ function getWebviewContent(context: vscode.ExtensionContext, webview: vscode.Web
                         }
                     });
                 }
+                
+                // Cascade UP to parent - check if all siblings are selected
+                updateParentCheckboxes();
                 
                 updateSelection();
             });
@@ -1194,16 +1209,91 @@ function getWebviewContent(context: vscode.ExtensionContext, webview: vscode.Web
             return defs[level] || '';
         }
 
+        // Update parent checkboxes based on children state
+        function updateParentCheckboxes() {
+            // Find all parent nodes (nodes with .tree-children)
+            document.querySelectorAll('.tree-node').forEach(parentNode => {
+                const childrenContainer = parentNode.querySelector(':scope > .tree-children');
+                if (!childrenContainer) return; // No children, skip
+                
+                const parentCheckbox = parentNode.querySelector(':scope > .tree-item > .tree-checkbox');
+                if (!parentCheckbox || parentCheckbox.disabled) return;
+                
+                // Get all direct child checkboxes (not nested grandchildren)
+                const childCheckboxes = childrenContainer.querySelectorAll(':scope > .tree-node > .tree-item > .tree-checkbox');
+                if (childCheckboxes.length === 0) return;
+                
+                // Check if all non-disabled children are checked
+                let allChecked = true;
+                let hasEnabledChild = false;
+                childCheckboxes.forEach(cb => {
+                    if (!cb.disabled) {
+                        hasEnabledChild = true;
+                        if (!cb.checked) {
+                            allChecked = false;
+                        }
+                    }
+                });
+                
+                // Update parent checkbox
+                if (hasEnabledChild) {
+                    const shouldCheck = allChecked;
+                    if (parentCheckbox.checked !== shouldCheck) {
+                        parentCheckbox.checked = shouldCheck;
+                        const parentPath = parentCheckbox.dataset.path;
+                        if (shouldCheck) {
+                            selectedPaths.add(parentPath);
+                        } else {
+                            selectedPaths.delete(parentPath);
+                        }
+                    }
+                }
+            });
+        }
+
+        // Check if a path has a parent that is also selected
+        function hasSelectedParent(path) {
+            for (const selectedPath of selectedPaths) {
+                if (selectedPath !== path && path.startsWith(selectedPath + '/')) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         function updateSelection() {
             let totalSize = 0;
+            let leafCount = 0;
             
+            // Count leaf nodes (selected items without selected children)
+            // Size only counts top-level items (avoid double counting)
             document.querySelectorAll('.tree-checkbox:checked').forEach(cb => {
-                totalSize += parseInt(cb.dataset.size) || 0;
+                const path = cb.dataset.path;
+                
+                // For size: only count if no selected parent (top-level)
+                if (!hasSelectedParent(path)) {
+                    totalSize += parseInt(cb.dataset.size) || 0;
+                }
+                
+                // For count: only count if no selected children (leaf)
+                if (!hasSelectedChildren(path)) {
+                    leafCount++;
+                }
             });
 
-            selectedCountEl.textContent = selectedPaths.size;
+            selectedCountEl.textContent = leafCount;
             selectedSizeEl.textContent = formatBytes(totalSize);
             deleteBtnEl.disabled = selectedPaths.size === 0;
+        }
+        
+        // Check if a path has any selected children
+        function hasSelectedChildren(path) {
+            for (const selectedPath of selectedPaths) {
+                if (selectedPath !== path && selectedPath.startsWith(path + '/')) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         function formatBytes(bytes) {
