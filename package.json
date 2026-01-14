@@ -2,7 +2,7 @@
   "name": "ai-cache-cleaner",
   "displayName": "AI Cache Cleaner",
   "description": "Visualize and clean cache from AI coding tools (Claude, Gemini, Cursor, Copilot, and more)",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "publisher": "lidegejingHk",
   "author": {
     "name": "lidegejingHk"
@@ -37,6 +37,7 @@
     "vscode": "^1.85.0"
   },
   "categories": [
+    "Visualization",
     "Other"
   ],
   "activationEvents": [],
