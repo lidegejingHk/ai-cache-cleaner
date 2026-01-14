@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 
 // Mock VSCode module for testing
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const vscode = {
   window: {
     showInformationMessage: () => Promise.resolve(),

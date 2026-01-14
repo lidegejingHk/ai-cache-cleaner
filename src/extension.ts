@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
-import { scanAllCaches, ScanResult, updateScanOptions } from './cacheScanner';
+import { scanAllCaches, updateScanOptions } from './cacheScanner';
 import { deleteMultiple, formatSize } from './cacheDeleter';
-import { detectKnownAITools, searchDirectoriesSync, SearchResult } from './aiToolSignatures';
-import { SAFETY_DEFINITIONS, SafetyLevel, getSafetyTooltip, getLevelChangeWarning } from './safetyLevels';
+import { detectKnownAITools, searchDirectoriesSync } from './aiToolSignatures';
+import { SAFETY_DEFINITIONS, SafetyLevel, getLevelChangeWarning } from './safetyLevels';
 
 let panel: vscode.WebviewPanel | undefined;
 let isSearching = false;
@@ -18,12 +18,6 @@ function syncConfigToScanner() {
         defaultSafetyLevel: config.get<'safe' | 'caution' | 'danger'>('defaultSafetyLevel', 'caution'),
         excludePatterns: config.get<string[]>('excludePatterns', [])
     });
-}
-
-// Check if notifications are enabled
-function shouldShowNotifications(): boolean {
-    const config = vscode.workspace.getConfiguration('aiCacheCleaner');
-    return config.get<boolean>('showNotifications', true);
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -136,11 +130,13 @@ class AICacheCleanerViewProvider implements vscode.WebviewViewProvider {
         this._context = context;
     }
 
+    /* eslint-disable @typescript-eslint/no-unused-vars */
     public resolveWebviewView(
         webviewView: vscode.WebviewView,
         _context: vscode.WebviewViewResolveContext,
         _token: vscode.CancellationToken
     ) {
+        /* eslint-enable @typescript-eslint/no-unused-vars */
         this._view = webviewView;
 
         webviewView.webview.options = {
@@ -367,7 +363,7 @@ async function handleSearch(query: string, webview: vscode.Webview) {
 
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        if (!isSearching) return;
+        if (!isSearching) { return; }
 
         webview.postMessage({
             command: 'searchProgress',
@@ -376,7 +372,7 @@ async function handleSearch(query: string, webview: vscode.Webview) {
 
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        if (!isSearching) return;
+        if (!isSearching) { return; }
 
         webview.postMessage({
             command: 'searchProgress',
@@ -423,9 +419,9 @@ async function handleDelete(paths: string[], safetyLevels: Record<string, Safety
 
     for (const path of paths) {
         const level = overrides[path] || safetyLevels[path] || 'safe';
-        if (level === 'safe') safeCount++;
-        else if (level === 'caution') cautionCount++;
-        else if (level === 'danger') dangerCount++;
+        if (level === 'safe') { safeCount++; }
+        else if (level === 'caution') { cautionCount++; }
+        else if (level === 'danger') { dangerCount++; }
     }
 
     // Build confirmation message based on safety levels
@@ -745,7 +741,7 @@ function getWebviewContent(context: vscode.ExtensionContext, webview: vscode.Web
                     for (const dir of dirs) {
                         if (selectedPaths.has(dir.path)) {
                             // Check if there's a user override first
-                            safetyLevels[dir.path] = userSafetyOverrides[dir.path] || dir.safetyLevel || 'safe';
+                            safetyLevels[dir.path] = safetyOverrides[dir.path] || dir.safetyLevel || 'safe';
                         }
                         if (dir.children) collectLevels(dir.children);
                     }
@@ -756,7 +752,7 @@ function getWebviewContent(context: vscode.ExtensionContext, webview: vscode.Web
                 // Also check custom directories
                 for (const path of selectedPaths) {
                     if (!safetyLevels[path]) {
-                        safetyLevels[path] = userSafetyOverrides[path] || 'safe';
+                        safetyLevels[path] = safetyOverrides[path] || 'safe';
                     }
                 }
                 
@@ -1138,14 +1134,31 @@ function getWebviewContent(context: vscode.ExtensionContext, webview: vscode.Web
                 });
             }
 
-            // Checkbox handler
+            // Checkbox handler - with parent-child cascade
             checkbox.addEventListener('change', (e) => {
                 const path = e.target.dataset.path;
+                const isChecked = e.target.checked;
                 
-                if (e.target.checked) {
+                if (isChecked) {
                     selectedPaths.add(path);
                 } else {
                     selectedPaths.delete(path);
+                }
+                
+                // Cascade to children
+                if (hasChildren) {
+                    const childCheckboxes = node.querySelectorAll('.tree-children .tree-checkbox');
+                    childCheckboxes.forEach(childCb => {
+                        if (!childCb.disabled) {
+                            childCb.checked = isChecked;
+                            const childPath = childCb.dataset.path;
+                            if (isChecked) {
+                                selectedPaths.add(childPath);
+                            } else {
+                                selectedPaths.delete(childPath);
+                            }
+                        }
+                    });
                 }
                 
                 updateSelection();

@@ -118,7 +118,7 @@ function expandPath(p: string): string {
 }
 
 function formatSize(bytes: number): string {
-  if (bytes === 0) return '0 B';
+  if (bytes === 0) {return '0 B';}
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -189,11 +189,11 @@ export function getSafetyLevelFromSignature(
   dirName: string
 ): 'safe' | 'caution' | 'danger' {
   const signature = AI_TOOL_SIGNATURES.find(s => s.name === toolName);
-  if (!signature) return 'caution';
+  if (!signature) {return 'caution';}
 
-  if (signature.safeDirectories.includes(dirName)) return 'safe';
-  if (signature.dangerDirectories.includes(dirName)) return 'danger';
-  if (signature.cautionDirectories.includes(dirName)) return 'caution';
+  if (signature.safeDirectories.includes(dirName)) {return 'safe';}
+  if (signature.dangerDirectories.includes(dirName)) {return 'danger';}
+  if (signature.cautionDirectories.includes(dirName)) {return 'caution';}
 
   return 'caution';
 }
@@ -233,7 +233,7 @@ export async function* searchDirectories(
   for (const location of searchLocations) {
     const expandedLocation = expandPath(location);
 
-    if (!fs.existsSync(expandedLocation)) continue;
+    if (!fs.existsSync(expandedLocation)) {continue;}
 
     try {
       const items = fs.readdirSync(expandedLocation);
@@ -242,7 +242,7 @@ export async function* searchDirectories(
         processedDirs++;
 
         // Skip excluded directories
-        if (excludeDirs.has(item)) continue;
+        if (excludeDirs.has(item)) {continue;}
 
         const itemPath = path.join(expandedLocation, item);
 
@@ -310,13 +310,13 @@ export function searchDirectoriesSync(query: string): SearchResult[] {
   for (const location of searchLocations) {
     const expandedLocation = expandPath(location);
 
-    if (!fs.existsSync(expandedLocation)) continue;
+    if (!fs.existsSync(expandedLocation)) {continue;}
 
     try {
       const items = fs.readdirSync(expandedLocation);
 
       for (const item of items) {
-        if (excludeDirs.has(item)) continue;
+        if (excludeDirs.has(item)) {continue;}
 
         const itemPath = path.join(expandedLocation, item);
 
